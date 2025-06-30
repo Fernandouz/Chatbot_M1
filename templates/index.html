@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Chatty News</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Chatty News 🤓</h1>
+    <form method="POST" action="/">
+        <label for="text">Entrez un article pour avoir son résumé ou son type:</label><br>
+        <textarea name="text" required>{{ input_text }}</textarea><br><br>
+
+        <input type="hidden" id="actionInput" name="action" value="" />
+
+        <div class="button-container">
+            <button type="button" onclick="handleSubmit('classify')">Prédire la catégorie</button>
+            <button type="button" onclick="handleSubmit('summarize')">Faire un résumé</button>
+            <button type="button" onclick="handleSubmit('wiki')">Recherche sur wikipédia</button>
+        </div>
+
+    </form>
+
+    <div id="loader" style="display:none;">
+      Laissez-moi réfléchir
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </div>
+
+<!--    <div id="loader" style="display:none; text-align:center; margin-top: 30px; color: #00ccff; font-weight: bold;">-->
+<!--        Laissez moi réfléchir...-->
+<!--    </div>-->
+<!--    <div id="loader" class="bar-loader" style="display: none">-->
+<!--        <div class="loader-bar"></div>-->
+<!--        <span class="loader-text">Analyse en cours...</span>-->
+<!--    </div>-->
+<!--    <div id="loader" class="ring-loader" style="display: none">-->
+<!--        <div class="neon-ring"></div>-->
+<!--        <span class="loader-text">Traitement...</span>-->
+<!--    </div>-->
+<!--    <div id="loader" class="ai-loader" style="display: none;">-->
+<!--        <canvas id="matrix-canvas"></canvas>-->
+
+<!--          <svg class="energy-ring" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">-->
+<!--            <circle class="outer" cx="50" cy="50" r="45" fill="none"/>-->
+<!--            <circle class="inner" cx="50" cy="50" r="35" fill="none"/>-->
+<!--          </svg>-->
+<!--        <div class="loader-text">Analyse en cours...</div>-->
+<!--    </div>-->
+
+    <!-- Affichage résultats classification -->
+    {% if prediction is not none %}
+    <div class="result">
+        <p>Prédiction modèle DeepLearning : <strong>{{ label }}</strong></p>
+        <p>Confiance : {{ confidence }}%</p>
+    </div>
+    {% endif %}
+
+    {% if label_ml %}
+    <div class="result">
+        <p>Prédiction modèle ML : <strong>{{ label_ml }}</strong></p>
+        <p>Confiance (approximative) : {{ confidence_ml }}%</p>
+    </div>
+    {% endif %}
+
+    <!-- Affichage résumé extractif -->
+    {% if summary %}
+    <div class="result">
+        <h3>Résumé de l'article :</h3>
+        <ul>
+            {% for sentence in summary %}
+            <li>{{ sentence }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Résultats Wikipédia -->
+    {% if head and article %}
+    <div class="result">
+        <h2>Résultat Wikipédia pour : {{ input_text }}</h2>
+
+        <h3>Résumé introductif :</h3>
+        <p>{{ head }}</p>
+
+        <h3>Résumé généré (extrait des passages importants) :</h3>
+        <ul>
+            {% for sentence in summarized_article %}
+            <li>{{ sentence }}</li>
+            {% endfor %}
+        </ul>
+
+        <h3>Article complet :</h3>
+        <p style="white-space: pre-line;">{{ article }}</p>
+    </div>
+    {% endif %}
+
+    <script>
+      const form = document.querySelector('form');
+      const loader = document.getElementById('loader');
+      const actionInput = document.getElementById('actionInput');
+
+      function handleSubmit(actionType) {
+        actionInput.value = actionType;
+
+          // Cacher toutes les div avec la classe "result"
+          document.querySelectorAll('.result').forEach(div => {
+            div.style.display = 'none';
+          });
+
+        loader.style.display = 'flex';
+        setTimeout(() => {
+          form.submit();
+        }, 2500);
+      }
+  // const canvas = document.getElementById("matrix-canvas");
+  // const ctx = canvas.getContext("2d");
+  //
+  // let width, height, columns, drops;
+  //
+  // function setupMatrix() {
+  //   width = canvas.width = document.getElementById("loader").offsetWidth;
+  //   height = canvas.height = document.getElementById("loader").offsetHeight;
+  //   columns = Math.floor(width / 12);
+  //   drops = Array(columns).fill(1);
+  // }
+  //
+  // function drawMatrix() {
+  //   // ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+  //   // ctx.fillRect(0, 0, width, height);
+  //   ctx.fillStyle = "#00ccff";
+  //   ctx.font = "14px monospace";
+  //
+  //   for (let i = 0; i < columns; i++) {
+  //     const text = String.fromCharCode(0x30A0 + Math.random() * 96);
+  //     ctx.fillText(text, i * 12, drops[i] * 16);
+  //
+  //     if (drops[i] * 16 > height || Math.random() > 0.975) {
+  //       drops[i] = 0;
+  //     }
+  //
+  //     drops[i]++;
+  //   }
+  // }
+  //
+  // // Lancer animation uniquement quand loader s'affiche
+  // const observer = new MutationObserver((mutations) => {
+  //   mutations.forEach((mutation) => {
+  //     if (mutation.target.style.display !== "none") {
+  //       setupMatrix();
+  //       clearInterval(window.matrixInterval);
+  //       window.matrixInterval = setInterval(drawMatrix, 50);
+  //     } else {
+  //       clearInterval(window.matrixInterval);
+  //     }
+  //   });
+  // });
+  //
+  // observer.observe(document.getElementById("loader"), { attributes: true, attributeFilter: ["style"] });
+
+    </script>
+
+
+</body>
+</html>
