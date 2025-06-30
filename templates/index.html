@@ -67,9 +67,20 @@
     <!-- Affichage résumé extractif -->
     {% if summary %}
     <div class="result">
-        <h3>Résumé de l'article :</h3>
+        <h3>Résumé de l'article ML:</h3>
         <ul>
             {% for sentence in summary %}
+            <li>{{ sentence }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if summary_DL %}
+    <div class="result">
+        <h3>Résumé de l'article DL:</h3>
+        <ul>
+            {% for sentence in summary_DL %}
             <li>{{ sentence }}</li>
             {% endfor %}
         </ul>

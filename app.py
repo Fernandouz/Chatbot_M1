@@ -4,7 +4,7 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from gensim.models import FastText
 import joblib
-from utils import preprocessing, encode_text, summarize_article, rechercher_wikipedia, recuperer_article_wikipedia
+from utils import preprocessing, encode_text, summarize_article, summarize_article_DL, rechercher_wikipedia, recuperer_article_wikipedia
 import scipy
 from nltk.tokenize import sent_tokenize
 
@@ -16,10 +16,12 @@ LABELS = ["World 🌍", "Sports 🏀", "Business 🏦", "Sci/Tech 🧬"]
 model = load_model("DL_Models/model_DL_10_120000.keras")
 fasttext_model = FastText.load("DL_Models/fasttext_model.bin")
 word_index = joblib.load("DL_Models/word_index.pkl")
+word_index_sum = joblib.load("ML_Sumarizer/word_index_sum.pkl")
 # Chargement du modèle ML
 pipeline_ml = joblib.load("ML_Models/model_pipeline_ML_LogisticRegression.joblib")
 # Chargement du Sumarizer
 summarizer = joblib.load("ML_Sumarizer/summarize_pipeline_XGBoost.pkl")
+summarizer_DL = load_model("ML_Sumarizer/model_DL.keras")
 app = Flask(__name__)
 
 @app.route("/", methods=["GET", "POST"])
@@ -30,6 +32,7 @@ def index():
     label_ml_str = None
     confidence_ml = None
     summary = None
+    summary_DL = None
     head = None
     article = None
     summarized_article = None
@@ -65,6 +68,7 @@ def index():
 
             elif action == "summarize":
                 summary = summarize_article(input_text, summarizer, preprocessing, top_k=3)
+                summary_DL = summarize_article_DL(input_text, summarizer_DL, word_index_sum, preprocessing, top_k=3)
 
             elif action == "wiki":
                 head = rechercher_wikipedia(input_text)
@@ -80,6 +84,7 @@ def index():
                            confidence_ml=confidence_ml,
                            input_text=input_text,
                            summary=summary,
+                           summary_DL=summary_DL,
                            head=head,
                            article=article,
                            summarized_article=summarized_article,

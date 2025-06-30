@@ -143,6 +143,40 @@ def summarize_article(article: str, summarizer, preprocessing, top_k: int = 5) -
 
     return summary_sentences
 
+
+import numpy as np
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from nltk.tokenize import sent_tokenize
+
+
+def summarize_article_DL(article, model, word_index, preprocessing, MAX_LEN=100, top_k=3):
+
+    def encode_text(tokens):
+        return [word_index[word] for word in tokens if word in word_index]
+
+    # 1. Tokenize en phrases
+    sentences = sent_tokenize(article)
+
+    # 2. Nettoyage et encodage
+    cleaned_sentences = [preprocessing(sentence) for sentence in sentences]
+    tokenized_sentences = [sent.split() for sent in cleaned_sentences]
+    encoded_sentences = [encode_text(tokens) for tokens in tokenized_sentences]
+
+    # 3. Padding
+    padded_sentences = pad_sequences(encoded_sentences, maxlen=MAX_LEN, padding='post')
+    X_val = np.array(padded_sentences)
+
+    # 4. Prédiction (flatten pour avoir un vecteur 1D)
+    predicted_probs = model.predict(X_val).flatten()
+
+    # 5. Sélection des indices des top_k phrases les plus probables
+    top_k_idx = np.argsort(predicted_probs)[-top_k:][::-1]
+
+    # 6. Préparer la liste des phrases avec leur probabilité
+    summary = [sentences[i] for i in sorted(top_k_idx)]
+
+    return summary
+
 ### WIKIPEDIA
 
 import requests
@@ -197,3 +231,4 @@ def recuperer_article_wikipedia(titre):
 
     except Exception as e:
         return f"Erreur lors de la récupération de l'article : {e}"
+
